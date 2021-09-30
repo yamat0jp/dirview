@@ -16,15 +16,16 @@ object Form1: TForm1
     FooterAppearanceClassName = 'TListHeaderObjects'
     Align = Client
     Size.Width = 351.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 458.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     OnDblClick = ListView1DblClick
   end
   object ListBox1: TListBox
     Align = Left
+    Position.Y = 22.000000000000000000
     Size.Width = 289.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 458.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     OnDblClick = ListBox1DblClick
@@ -33,5 +34,13 @@ object Form1: TForm1
     DefaultItemStyles.GroupHeaderStyle = ''
     DefaultItemStyles.GroupFooterStyle = ''
     OnChange = ListBox1Change
+  end
+  object ComboBox1: TComboBox
+    Align = Top
+    Size.Width = 640.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    OnChange = ComboBox1Change
   end
 end

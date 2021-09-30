@@ -12,15 +12,19 @@ type
   TForm1 = class(TForm)
     ListView1: TListView;
     ListBox1: TListBox;
+    ComboBox1: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure ListBox1Change(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
+    procedure ComboBox1Change(Sender: TObject);
   private
     { private éŒ¾ }
     current: string;
+    cnt: integer;
+    function checkroot(const dir: string): Boolean;
     procedure getfiles(const dir: string);
-    procedure getdir;
+    procedure getdir(const dir: string);
     function getname: string;
   public
     { public éŒ¾ }
@@ -33,45 +37,76 @@ implementation
 
 {$R *.fmx}
 
+function TForm1.checkroot(const dir: string): Boolean;
+var
+  s: string;
+begin
+  s := getname;
+  result := (Copy(dir, 1, Length(s)) = s) and (Length(s) > Length(dir));
+end;
+
+procedure TForm1.ComboBox1Change(Sender: TObject);
+var
+  s, t: string;
+begin
+  t := ComboBox1.Items[ComboBox1.ItemIndex];
+  if (Length(t) < Length(Caption)) or (checkroot(t) = false) then
+  begin
+    s := getname;
+    if (s <> '') and (ComboBox1.Items.IndexOf(s) = -1) then
+      ComboBox1.Items.Add(s);
+    getdir(t);
+    getfiles(t);
+  end;
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   current := GetCurrentDir;
-  getdir;
+  ComboBox1.Items.Add(current);
+  cnt := 5;
+  getdir(current);
   getfiles(current);
 end;
 
-procedure TForm1.getdir;
+procedure TForm1.getdir(const dir: string);
 var
-  s, t: string;
-  i, j: Integer;
-  rec: TSearchRec;
+  s: string;
+  i: integer;
+  tmp: TStringList;
 begin
   ListBox1.Items.Clear;
-  if current = 'C:\' then
-    s := current
-  else
-    s := current + '\';
-  for i := 1 to 5 do
-  begin
-    s := ExtractFileDir(s);
-    t := ExtractFileName(s);
-    if (s = '') or (t = '') then
+  tmp := TStringList.Create;
+  try
+    tmp.Delimiter := '\';
+    tmp.DelimitedText := dir;
+    s := tmp[0];
+    for i := 1 to tmp.Count - cnt - 2 do
+      s := s + '\' + tmp[i];
+    i := tmp.Count - cnt - 1;
+    if i < 0 then
     begin
-      ListBox1.Items.Insert(0, 'C:\');
-      Caption := '';
-      Exit;
+      i := 0;
+      s := '';
     end;
-    ListBox1.Items.Insert(0, t);
-    if i = 1 then
-      ListBox1.Items.Insert(0, '------');
+    while i < tmp.Count do
+    begin
+      ListBox1.Items.Add(tmp[i]);
+      inc(i);
+    end;
+    if ListBox1.Count > 1 then
+      ListBox1.Items.Insert(ListBox1.Count - 1, '---------');
+    Caption := s;
+    current := dir;
+  finally
+    tmp.Free;
   end;
-  Caption := ExtractFileDir(s);
 end;
 
 procedure TForm1.getfiles(const dir: string);
 var
   rec: TSearchRec;
-  i, j: Integer;
+  i, j: integer;
 begin
   ListView1.Items.Clear;
   i := FindFirst(dir + '\*', faAnyFile, rec);
@@ -95,39 +130,47 @@ end;
 
 function TForm1.getname: string;
 var
-  i: Integer;
+  i: integer;
 begin
-  if ListBox1.Items[0] = 'C:\' then
-    result := 'C:'
+  if ListBox1.ItemIndex = -1 then
+  begin
+    result := '';
+    Exit;
+  end;
+  if (ListBox1.Items.Count > 0) and (ListBox1.Items[0] = 'C:') then
+    result := ListBox1.Items[0]
   else
     result := Caption + '\' + ListBox1.Items[0];
   for i := 1 to ListBox1.ItemIndex do
-  begin
     if Copy(ListBox1.Items[i], 1, 2) = '--' then
     begin
       if i < ListBox1.ItemIndex then
         result := result + '\' + ListBox1.Items[ListBox1.ItemIndex];
       break;
-    end;
-    result := result + '\' + ListBox1.Items[i];
-  end;
+    end
+    else
+      result := result + '\' + ListBox1.Items[i];
 end;
 
 procedure TForm1.ListBox1Change(Sender: TObject);
 begin
-  if Copy(ListBox1.Items[ListBox1.ItemIndex],1,2) = '--' then
+  if Copy(ListBox1.Items[ListBox1.ItemIndex], 1, 2) = '--' then
     ListView1.Items.Clear
   else
     getfiles(getname);
 end;
 
 procedure TForm1.ListBox1DblClick(Sender: TObject);
+var
+  s: string;
 begin
-  if ListBox1.Items[0] <> 'C:\' then
+  if ListBox1.Items[0] <> 'C:' then
   begin
-    current := getname;
-    getdir;
-    getfiles(current);
+    s := getname;
+    if (s <> '')and( ComboBox1.Items.IndexOf(s) = -1) then
+      ComboBox1.Items.Add(s);
+    getdir(s);
+    getfiles(s);
   end;
 end;
 
@@ -138,8 +181,7 @@ begin
   s := getname + '\' + ListView1.Items[ListView1.ItemIndex].Text;
   if DirectoryExists(s) = true then
   begin
-    current := s;
-    getdir;
+    getdir(s);
     getfiles(s);
     ListBox1.ItemIndex := ListBox1.Items.Count - 1;
   end;
