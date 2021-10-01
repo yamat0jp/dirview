@@ -6,18 +6,25 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.ListView.Types, FMX.Layouts, FMX.ListBox, FMX.ListView;
+  FMX.ListView.Types, FMX.Layouts, FMX.ListBox, FMX.ListView, System.Actions,
+  FMX.ActnList, FMX.Menus;
 
 type
   TForm1 = class(TForm)
     ListView1: TListView;
     ListBox1: TListBox;
     ComboBox1: TComboBox;
+    MainMenu1: TMainMenu;
+    ActionList1: TActionList;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    About1: TAction;
     procedure FormCreate(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure ListBox1Change(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure ComboBox1Change(Sender: TObject);
+    procedure About1Execute(Sender: TObject);
   private
     { private êÈåæ }
     current: string;
@@ -36,6 +43,14 @@ var
 implementation
 
 {$R *.fmx}
+
+uses Unit2;
+{$R *.Macintosh.fmx _MACOS}
+
+procedure TForm1.About1Execute(Sender: TObject);
+begin
+  Form2.ShowModal;
+end;
 
 function TForm1.checkroot(const dir: string): Boolean;
 var
@@ -113,9 +128,9 @@ begin
   j := 0;
   while i = 0 do
   begin
-    if rec.Name[1] <> '.' then
+    if (rec.Name[1] <> '.')and(rec.Attr and faHidden = 0) then
     begin
-      if rec.Attr = faDirectory then
+      if rec.Attr and faDirectory > 0 then
       begin
         ListView1.Items.AddItem(j).Text := rec.Name;
         inc(j);
